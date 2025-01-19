@@ -1,4 +1,4 @@
-"use client";
+// This is an example of a server-side component using getServerSideProps.
 
 import { client } from "@/sanity/sanity-utils";
 import Link from "next/link";
@@ -16,25 +16,10 @@ interface Car {
   };
 }
 
-const HomePage = async () => {
-  // Fetch cars data from Sanity
-  const cars: Car[] = await client.fetch(
-    `*[_type == "car"]{
-      type,
-      pricePerDay,
-      transmission,
-      "imageUrl": image.asset->url,
-      fuelCapacity,
-      seatingCapacity,
-      name,
-      slug
-    }`
-  );
-
-  // Handle rent now button click
+const HomePage = ({ cars }: { cars: Car[] }) => {
   const handleRentNow = (slug: string | undefined) => {
     if (slug) {
-      // Logic for handling the "Rent Now" button (e.g., navigate to the car detail page or cart)
+      // Handle rent logic here
       console.log(`Renting car with slug: ${slug}`);
     }
   };
@@ -68,5 +53,22 @@ const HomePage = async () => {
     </div>
   );
 };
+
+export async function getServerSideProps() {
+  const cars = await client.fetch(
+    `*[_type == "car"]{
+      type,
+      pricePerDay,
+      transmission,
+      "imageUrl": image.asset->url,
+      fuelCapacity,
+      seatingCapacity,
+      name,
+      slug
+    }`
+  );
+
+  return { props: { cars } };
+}
 
 export default HomePage;
