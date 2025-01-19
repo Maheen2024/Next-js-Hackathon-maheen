@@ -1,5 +1,6 @@
-// This is an example of a server-side component using getServerSideProps.
+"use client";
 
+import { useEffect, useState } from "react";
 import { client } from "@/sanity/sanity-utils";
 import Link from "next/link";
 
@@ -16,13 +17,41 @@ interface Car {
   };
 }
 
-const HomePage = ({ cars }: { cars: Car[] }) => {
+const HomePage = () => {
+  const [cars, setCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      const carData = await client.fetch(
+        `*[_type == "car"]{
+          type,
+          pricePerDay,
+          transmission,
+          "imageUrl": image.asset->url,
+          fuelCapacity,
+          seatingCapacity,
+          name,
+          slug
+        }`
+      );
+      setCars(carData);
+      setLoading(false);
+    };
+
+    fetchCars();
+  }, []);
+
   const handleRentNow = (slug: string | undefined) => {
     if (slug) {
       // Handle rent logic here
       console.log(`Renting car with slug: ${slug}`);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="bg-[#f6f7f9] min-h-screen p-4 sm:p-6 lg:p-20 flex flex-col gap-10">
@@ -54,21 +83,5 @@ const HomePage = ({ cars }: { cars: Car[] }) => {
   );
 };
 
-export async function getServerSideProps() {
-  const cars = await client.fetch(
-    `*[_type == "car"]{
-      type,
-      pricePerDay,
-      transmission,
-      "imageUrl": image.asset->url,
-      fuelCapacity,
-      seatingCapacity,
-      name,
-      slug
-    }`
-  );
-
-  return { props: { cars } };
-}
-
 export default HomePage;
+
